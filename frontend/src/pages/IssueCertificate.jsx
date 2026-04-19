@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { ethers } from 'ethers';
 import { getContract } from '../utils/contract';
 import { connectWallet } from '../utils/ethereum';
+import { generateCertificateMetadata, uploadToIPFS } from '../utils/ipfs';
+import { QRCodeSVG } from 'qrcode.react';
 import './IssueCertificate.css';
 
 export default function IssueCertificate({ account, onConnect }) {
@@ -11,11 +13,13 @@ export default function IssueCertificate({ account, onConnect }) {
     courseName: '',
     issuer: '',
     recipientAddress: '',
-    tokenURI: '',
   });
+  const [autoGenerateIPFS, setAutoGenerateIPFS] = useState(true);
+  const [customTokenURI, setCustomTokenURI] = useState('');
   const [status, setStatus] = useState(null); // null | 'loading' | 'success' | 'error'
   const [txHash, setTxHash] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
+  const [showQR, setShowQR] = useState(false);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -43,13 +47,25 @@ export default function IssueCertificate({ account, onConnect }) {
       // Use the connected wallet address as recipient if not specified
       const recipient = form.recipientAddress || (await signer.getAddress());
 
+      // Generate IPFS metadata if auto-generate is enabled
+      let tokenURI = customTokenURI;
+      if (autoGenerateIPFS) {
+        const metadata = generateCertificateMetadata({
+          certificateId: form.certificateId,
+          studentName: form.studentName,
+          courseName: form.courseName,
+          issuer: form.issuer,
+        });
+        tokenURI = await uploadToIPFS(metadata);
+      }
+
       const tx = await contract.issueCertificate(
         form.certificateId,
         form.studentName,
         form.courseName,
         form.issuer,
         recipient,
-        form.tokenURI || ''
+        tokenURI || ''
       );
 
       setTxHash(tx.hash);
@@ -75,12 +91,15 @@ export default function IssueCertificate({ account, onConnect }) {
       courseName: '',
       issuer: '',
       recipientAddress: '',
-      tokenURI: '',
     });
+    setCustomTokenURI('');
     setStatus(null);
     setTxHash('');
     setErrorMsg('');
+    setShowQR(false);
   };
+
+  const verificationUrl = `${window.location.origin}/verify?id=${encodeURIComponent(form.certificateId)}`;
 
   return (
     <div className="issue-page">
@@ -91,7 +110,7 @@ export default function IssueCertificate({ account, onConnect }) {
           <h1>Issue Certificate</h1>
           <p className="page-desc">
             Create a tamper-proof certificate on the blockchain.
-            Each certificate is minted as an ERC-721 NFT.
+            Each certificate is minted as an ERC-721 NFT with IPFS metadata.
           </p>
         </div>
 
@@ -101,7 +120,7 @@ export default function IssueCertificate({ account, onConnect }) {
             <div className="result-icon success-icon">✅</div>
             <h2>Certificate Issued Successfully!</h2>
             <p className="result-detail">
-              Certificate <strong>{form.certificateId}</strong> has been permanently recorded on the blockchain.
+              Certificate <strong>{form.certificateId}</strong> has been permanently recorded on the blockchain as an NFT.
             </p>
             {txHash && (
               <div className="tx-hash-box">
@@ -109,7 +128,34 @@ export default function IssueCertificate({ account, onConnect }) {
                 <code className="tx-hash">{txHash}</code>
               </div>
             )}
-            <button className="btn btn-primary" onClick={resetForm} id="issue-another-btn">
+
+            {/* QR Code for sharing */}
+            <div className="success-actions">
+              <button
+                className="btn btn-secondary qr-toggle"
+                onClick={() => setShowQR(!showQR)}
+                id="success-qr-toggle"
+              >
+                {showQR ? '🔽 Hide QR Code' : '📱 Share via QR'}
+              </button>
+            </div>
+
+            {showQR && (
+              <div className="qr-section animate-fade-in">
+                <div className="qr-wrapper">
+                  <QRCodeSVG
+                    value={verificationUrl}
+                    size={160}
+                    bgColor="transparent"
+                    fgColor="#22c55e"
+                    level="M"
+                  />
+                </div>
+                <p className="qr-hint">Share this QR for instant certificate verification</p>
+              </div>
+            )}
+
+            <button className="btn btn-primary" onClick={resetForm} id="issue-another-btn" style={{ marginTop: '16px' }}>
               Issue Another Certificate
             </button>
           </div>
@@ -184,20 +230,35 @@ export default function IssueCertificate({ account, onConnect }) {
               />
             </div>
 
-            <div className="form-group">
-              <label htmlFor="tokenURI">
-                IPFS Metadata URI
-                <span className="optional-label">(optional)</span>
+            {/* IPFS Toggle */}
+            <div className="ipfs-toggle">
+              <label className="toggle-label">
+                <input
+                  type="checkbox"
+                  checked={autoGenerateIPFS}
+                  onChange={(e) => setAutoGenerateIPFS(e.target.checked)}
+                  id="ipfs-auto-toggle"
+                />
+                <span className="toggle-switch"></span>
+                <span className="toggle-text">Auto-generate IPFS metadata (NFT)</span>
               </label>
-              <input
-                type="text"
-                id="tokenURI"
-                name="tokenURI"
-                placeholder="ipfs://Qm..."
-                value={form.tokenURI}
-                onChange={handleChange}
-              />
             </div>
+
+            {!autoGenerateIPFS && (
+              <div className="form-group animate-fade-in">
+                <label htmlFor="customTokenURI">
+                  Custom Token URI
+                  <span className="optional-label">(IPFS or data URI)</span>
+                </label>
+                <input
+                  type="text"
+                  id="customTokenURI"
+                  placeholder="ipfs://Qm..."
+                  value={customTokenURI}
+                  onChange={(e) => setCustomTokenURI(e.target.value)}
+                />
+              </div>
+            )}
 
             {/* Error Message */}
             {status === 'error' && (
