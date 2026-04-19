@@ -1,0 +1,176 @@
+/* ═══════════════════════════════════════════════════════
+   CertChain — Global Design System
+   Premium dark-mode design with glassmorphism
+   ═══════════════════════════════════════════════════════ */
+
+/* ── CSS Variables (Design Tokens) ── */
+:root {
+  /* Colors */
+  --bg-primary: #06060f;
+  --bg-secondary: #0d0d1a;
+  --bg-card: rgba(15, 15, 35, 0.7);
+  --bg-card-hover: rgba(20, 20, 50, 0.8);
+  --bg-input: rgba(15, 15, 40, 0.6);
+
+  --text-primary: #e8e8f0;
+  --text-secondary: #9090b0;
+  --text-muted: #606080;
+
+  --accent-cyan: #00d4ff;
+  --accent-purple: #7c3aed;
+  --accent-green: #22c55e;
+  --accent-red: #ef4444;
+  --accent-amber: #f59e0b;
+
+  --gradient-primary: linear-gradient(135deg, #00d4ff, #7c3aed);
+  --gradient-card: linear-gradient(135deg, rgba(0, 212, 255, 0.05), rgba(124, 58, 237, 0.05));
+  --gradient-bg: radial-gradient(ellipse at top, rgba(0, 212, 255, 0.08) 0%, transparent 50%),
+                 radial-gradient(ellipse at bottom right, rgba(124, 58, 237, 0.06) 0%, transparent 50%);
+
+  --border-subtle: rgba(100, 100, 180, 0.12);
+  --border-accent: rgba(0, 212, 255, 0.3);
+
+  --shadow-glow: 0 0 30px rgba(0, 212, 255, 0.15);
+  --shadow-card: 0 8px 32px rgba(0, 0, 0, 0.4);
+  --shadow-button: 0 4px 20px rgba(0, 212, 255, 0.25);
+
+  /* Typography */
+  --font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+
+  /* Sizes */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+
+  /* Transitions */
+  --transition-fast: 150ms ease;
+  --transition-normal: 250ms ease;
+  --transition-slow: 400ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ── Reset & Base ── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-family);
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  min-height: 100vh;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--gradient-bg);
+}
+
+a {
+  color: var(--accent-cyan);
+  text-decoration: none;
+  transition: color var(--transition-fast);
+}
+
+a:hover {
+  color: var(--accent-purple);
+}
+
+/* ── Animations ── */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 15px rgba(0, 212, 255, 0.2); }
+  50% { box-shadow: 0 0 30px rgba(0, 212, 255, 0.4); }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes gradient-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.6s ease forwards;
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.4s ease forwards;
+}
+
+/* ── Utility Classes ── */
+.glass {
+  background: var(--bg-card);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+}
+
+.glass-strong {
+  background: rgba(10, 10, 30, 0.85);
+  backdrop-filter: blur(30px);
+  -webkit-backdrop-filter: blur(30px);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-primary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-subtle);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-cyan);
+}
