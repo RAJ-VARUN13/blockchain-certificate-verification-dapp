@@ -3,7 +3,6 @@ import { ethers } from 'ethers';
 import { getContract } from '../utils/contract';
 import { connectWallet } from '../utils/ethereum';
 import { generateCertificateMetadata, uploadToIPFS } from '../utils/ipfs';
-import { QRCodeSVG } from 'qrcode.react';
 import './IssueCertificate.css';
 
 export default function IssueCertificate({ account, onConnect }) {
@@ -14,12 +13,9 @@ export default function IssueCertificate({ account, onConnect }) {
     issuer: '',
     recipientAddress: '',
   });
-  const [autoGenerateIPFS, setAutoGenerateIPFS] = useState(true);
-  const [customTokenURI, setCustomTokenURI] = useState('');
-  const [status, setStatus] = useState(null); // null | 'loading' | 'success' | 'error'
+  const [status, setStatus] = useState(null);
   const [txHash, setTxHash] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
-  const [showQR, setShowQR] = useState(false);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -32,7 +28,6 @@ export default function IssueCertificate({ account, onConnect }) {
     setTxHash('');
 
     try {
-      // Connect if not connected
       let signer;
       if (!account) {
         const wallet = await connectWallet();
@@ -43,21 +38,16 @@ export default function IssueCertificate({ account, onConnect }) {
       }
 
       const contract = getContract(signer);
-
-      // Use the connected wallet address as recipient if not specified
       const recipient = form.recipientAddress || (await signer.getAddress());
 
-      // Generate IPFS metadata if auto-generate is enabled
-      let tokenURI = customTokenURI;
-      if (autoGenerateIPFS) {
-        const metadata = generateCertificateMetadata({
-          certificateId: form.certificateId,
-          studentName: form.studentName,
-          courseName: form.courseName,
-          issuer: form.issuer,
-        });
-        tokenURI = await uploadToIPFS(metadata);
-      }
+      // Generate IPFS metadata
+      const metadata = generateCertificateMetadata({
+        certificateId: form.certificateId,
+        studentName: form.studentName,
+        courseName: form.courseName,
+        issuer: form.issuer,
+      });
+      const tokenURI = await uploadToIPFS(metadata);
 
       const tx = await contract.issueCertificate(
         form.certificateId,
@@ -65,233 +55,89 @@ export default function IssueCertificate({ account, onConnect }) {
         form.courseName,
         form.issuer,
         recipient,
-        tokenURI || ''
+        tokenURI
       );
 
       setTxHash(tx.hash);
       await tx.wait();
       setStatus('success');
     } catch (err) {
-      console.error('Issue certificate error:', err);
+      console.error('Issue error:', err);
       setStatus('error');
-      if (err.reason) {
-        setErrorMsg(err.reason);
-      } else if (err.message?.includes('user rejected')) {
-        setErrorMsg('Transaction was rejected by user.');
-      } else {
-        setErrorMsg(err.message || 'An unknown error occurred.');
-      }
+      if (err.reason) setErrorMsg(err.reason);
+      else if (err.message?.includes('user rejected')) setErrorMsg('Transaction rejected.');
+      else setErrorMsg(err.message || 'Something went wrong.');
     }
   };
 
   const resetForm = () => {
-    setForm({
-      certificateId: '',
-      studentName: '',
-      courseName: '',
-      issuer: '',
-      recipientAddress: '',
-    });
-    setCustomTokenURI('');
+    setForm({ certificateId: '', studentName: '', courseName: '', issuer: '', recipientAddress: '' });
     setStatus(null);
     setTxHash('');
     setErrorMsg('');
-    setShowQR(false);
   };
 
-  const verificationUrl = `${window.location.origin}/verify?id=${encodeURIComponent(form.certificateId)}`;
-
   return (
-    <div className="issue-page">
-      <div className="issue-container animate-fade-in-up">
-        {/* Header */}
+    <div className="page-container">
+      <div className="page-content fade-in">
         <div className="page-header">
-          <div className="page-icon">🎓</div>
           <h1>Issue Certificate</h1>
-          <p className="page-desc">
-            Create a tamper-proof certificate on the blockchain.
-            Each certificate is minted as an ERC-721 NFT with IPFS metadata.
-          </p>
+          <p>Create a new certificate on the blockchain. It will be minted as an ERC-721 NFT.</p>
         </div>
 
-        {/* Success State */}
         {status === 'success' ? (
-          <div className="result-card glass success-card animate-fade-in-up">
-            <div className="result-icon success-icon">✅</div>
-            <h2>Certificate Issued Successfully!</h2>
-            <p className="result-detail">
-              Certificate <strong>{form.certificateId}</strong> has been permanently recorded on the blockchain as an NFT.
-            </p>
+          <div className="card success-card fade-in">
+            <div className="success-marker">Issued</div>
+            <h2>Certificate recorded on-chain</h2>
+            <p className="success-id">{form.certificateId}</p>
             {txHash && (
-              <div className="tx-hash-box">
-                <span className="tx-label">Transaction Hash:</span>
-                <code className="tx-hash">{txHash}</code>
+              <div className="tx-row">
+                <span className="tx-label">Tx</span>
+                <code className="tx-value">{txHash}</code>
               </div>
             )}
-
-            {/* QR Code for sharing */}
-            <div className="success-actions">
-              <button
-                className="btn btn-secondary qr-toggle"
-                onClick={() => setShowQR(!showQR)}
-                id="success-qr-toggle"
-              >
-                {showQR ? '🔽 Hide QR Code' : '📱 Share via QR'}
-              </button>
-            </div>
-
-            {showQR && (
-              <div className="qr-section animate-fade-in">
-                <div className="qr-wrapper">
-                  <QRCodeSVG
-                    value={verificationUrl}
-                    size={160}
-                    bgColor="transparent"
-                    fgColor="#22c55e"
-                    level="M"
-                  />
-                </div>
-                <p className="qr-hint">Share this QR for instant certificate verification</p>
-              </div>
-            )}
-
-            <button className="btn btn-primary" onClick={resetForm} id="issue-another-btn" style={{ marginTop: '16px' }}>
-              Issue Another Certificate
+            <button className="btn-ghost" onClick={resetForm} id="issue-another-btn" style={{ marginTop: 20 }}>
+              Issue another
             </button>
           </div>
         ) : (
-          /* Form */
-          <form className="issue-form glass" onSubmit={handleSubmit} id="issue-form">
-            <div className="form-group">
+          <form className="card" onSubmit={handleSubmit} id="issue-form">
+            <div className="field">
               <label htmlFor="certificateId">Certificate ID</label>
-              <input
-                type="text"
-                id="certificateId"
-                name="certificateId"
-                placeholder="e.g., CERT-2024-001"
-                value={form.certificateId}
-                onChange={handleChange}
-                required
-              />
+              <input type="text" id="certificateId" name="certificateId" placeholder="CERT-2024-001" value={form.certificateId} onChange={handleChange} required />
             </div>
 
-            <div className="form-row">
-              <div className="form-group">
-                <label htmlFor="studentName">Student Name</label>
-                <input
-                  type="text"
-                  id="studentName"
-                  name="studentName"
-                  placeholder="e.g., Varun Raj"
-                  value={form.studentName}
-                  onChange={handleChange}
-                  required
-                />
+            <div className="field-row">
+              <div className="field">
+                <label htmlFor="studentName">Student name</label>
+                <input type="text" id="studentName" name="studentName" placeholder="Varun Raj" value={form.studentName} onChange={handleChange} required />
               </div>
-              <div className="form-group">
-                <label htmlFor="courseName">Course Name</label>
-                <input
-                  type="text"
-                  id="courseName"
-                  name="courseName"
-                  placeholder="e.g., Blockchain Development"
-                  value={form.courseName}
-                  onChange={handleChange}
-                  required
-                />
+              <div className="field">
+                <label htmlFor="courseName">Course</label>
+                <input type="text" id="courseName" name="courseName" placeholder="Blockchain Development" value={form.courseName} onChange={handleChange} required />
               </div>
             </div>
 
-            <div className="form-group">
-              <label htmlFor="issuer">Issuing Organization</label>
-              <input
-                type="text"
-                id="issuer"
-                name="issuer"
-                placeholder="e.g., IIIT Ranchi"
-                value={form.issuer}
-                onChange={handleChange}
-                required
-              />
+            <div className="field">
+              <label htmlFor="issuer">Issuing organization</label>
+              <input type="text" id="issuer" name="issuer" placeholder="IIIT Ranchi" value={form.issuer} onChange={handleChange} required />
             </div>
 
-            <div className="form-group">
-              <label htmlFor="recipientAddress">
-                Recipient Wallet Address
-                <span className="optional-label">(optional — defaults to your wallet)</span>
-              </label>
-              <input
-                type="text"
-                id="recipientAddress"
-                name="recipientAddress"
-                placeholder="0x..."
-                value={form.recipientAddress}
-                onChange={handleChange}
-              />
+            <div className="field">
+              <label htmlFor="recipientAddress">Recipient address <span className="hint">optional</span></label>
+              <input type="text" id="recipientAddress" name="recipientAddress" placeholder="0x... (defaults to your wallet)" value={form.recipientAddress} onChange={handleChange} />
             </div>
 
-            {/* IPFS Toggle */}
-            <div className="ipfs-toggle">
-              <label className="toggle-label">
-                <input
-                  type="checkbox"
-                  checked={autoGenerateIPFS}
-                  onChange={(e) => setAutoGenerateIPFS(e.target.checked)}
-                  id="ipfs-auto-toggle"
-                />
-                <span className="toggle-switch"></span>
-                <span className="toggle-text">Auto-generate IPFS metadata (NFT)</span>
-              </label>
-            </div>
-
-            {!autoGenerateIPFS && (
-              <div className="form-group animate-fade-in">
-                <label htmlFor="customTokenURI">
-                  Custom Token URI
-                  <span className="optional-label">(IPFS or data URI)</span>
-                </label>
-                <input
-                  type="text"
-                  id="customTokenURI"
-                  placeholder="ipfs://Qm..."
-                  value={customTokenURI}
-                  onChange={(e) => setCustomTokenURI(e.target.value)}
-                />
-              </div>
-            )}
-
-            {/* Error Message */}
             {status === 'error' && (
-              <div className="error-box animate-fade-in">
-                <span className="error-icon">❌</span>
-                <span>{errorMsg}</span>
-              </div>
+              <div className="error-msg fade-in">{errorMsg}</div>
             )}
 
-            {/* Submit Button */}
-            <button
-              type="submit"
-              className={`btn btn-primary submit-btn ${status === 'loading' ? 'loading' : ''}`}
-              disabled={status === 'loading'}
-              id="submit-issue-btn"
-            >
-              {status === 'loading' ? (
-                <>
-                  <span className="spinner"></span>
-                  Processing Transaction...
-                </>
-              ) : (
-                <>
-                  <span>⛓️</span>
-                  Issue on Blockchain
-                </>
-              )}
+            <button type="submit" className="btn-primary submit-btn" disabled={status === 'loading'} id="submit-issue-btn">
+              {status === 'loading' ? 'Sending transaction...' : 'Issue certificate'}
             </button>
 
             {txHash && status === 'loading' && (
-              <p className="tx-pending">
-                Tx: <code>{txHash.slice(0, 20)}...</code> — waiting for confirmation...
-              </p>
+              <p className="tx-pending">Confirming <code>{txHash.slice(0, 16)}...</code></p>
             )}
           </form>
         )}

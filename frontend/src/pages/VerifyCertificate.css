@@ -1,218 +1,163 @@
-/* ═══════════════════════════════════════
-   Verify Certificate Page Styles
-   ═══════════════════════════════════════ */
-
-.verify-page {
-  padding: 100px 24px 60px;
-  min-height: 100vh;
-  display: flex;
-  justify-content: center;
-}
-
-.verify-container {
-  width: 100%;
-  max-width: 640px;
-}
-
 /* Search Form */
-.verify-form {
-  padding: 8px;
-  margin-bottom: 28px;
-}
-
-.search-bar {
+.search-form {
   display: flex;
   gap: 0;
+  margin-bottom: 24px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--bg-elevated);
+  transition: border-color var(--transition);
 }
 
-.search-bar input {
+.search-form:focus-within {
+  border-color: var(--accent);
+}
+
+.search-form input {
   flex: 1;
-  padding: 16px 20px;
-  border: none;
+  padding: 11px 14px;
+  font-size: 0.85rem;
+  font-family: var(--font);
+  color: var(--text);
   background: transparent;
-  color: var(--text-primary);
-  font-family: var(--font-family);
-  font-size: 0.95rem;
+  border: none;
   outline: none;
 }
 
-.search-bar input::placeholder {
+.search-form input::placeholder {
   color: var(--text-muted);
 }
 
 .search-btn {
-  width: 52px;
-  height: 52px;
-  border-radius: var(--radius-sm);
+  padding: 11px 18px;
+  font-size: 0.82rem;
+  font-weight: 500;
+  font-family: var(--font);
+  color: var(--text);
+  background: var(--bg-surface);
   border: none;
-  background: var(--gradient-primary);
-  color: #fff;
-  font-size: 1.4rem;
+  border-left: 1px solid var(--border);
   cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all var(--transition-normal);
-  flex-shrink: 0;
+  transition: background var(--transition);
 }
 
 .search-btn:hover:not(:disabled) {
-  transform: scale(1.05);
-  box-shadow: var(--shadow-button);
+  background: var(--bg-hover);
 }
 
 .search-btn:disabled {
-  opacity: 0.6;
+  opacity: 0.5;
   cursor: not-allowed;
 }
 
 /* Certificate Card */
-.certificate-card {
+.cert-card {
   padding: 0;
   overflow: hidden;
-  animation: fadeInUp 0.5s ease forwards;
 }
 
-.verified-badge {
+.cert-status {
   display: flex;
   align-items: center;
-  justify-content: center;
   gap: 8px;
-  padding: 12px;
-  background: rgba(34, 197, 94, 0.08);
-  border-bottom: 1px solid rgba(34, 197, 94, 0.15);
-  color: var(--accent-green);
-  font-size: 0.85rem;
-  font-weight: 700;
-  letter-spacing: 0.5px;
+  padding: 12px 20px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--green);
+  border-bottom: 1px solid var(--border);
   text-transform: uppercase;
+  letter-spacing: 0.4px;
 }
 
-.verified-icon {
-  font-size: 1rem;
+.status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--green);
 }
 
-.cert-header {
-  text-align: center;
-  padding: 28px 24px 12px;
+.cert-grid {
+  padding: 4px 0;
 }
 
-.cert-title {
-  font-size: 1.5rem;
-  font-weight: 800;
-  letter-spacing: -0.3px;
-  background: var(--gradient-primary);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  margin-bottom: 4px;
-}
-
-.cert-subtitle {
-  color: var(--text-muted);
-  font-size: 0.85rem;
-  font-weight: 500;
-}
-
-.cert-details {
-  padding: 8px 28px 20px;
-  display: grid;
-  gap: 12px;
-}
-
-.cert-field {
+.cert-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 14px;
-  border-radius: var(--radius-sm);
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.03);
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--border);
 }
 
-.field-label {
+.cert-row:last-child {
+  border-bottom: none;
+}
+
+.cert-label {
   font-size: 0.8rem;
   color: var(--text-muted);
   font-weight: 500;
 }
 
-.field-value {
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: var(--text-primary);
-  text-align: right;
-}
-
-.token-id {
-  color: var(--accent-purple);
-  font-family: 'Courier New', monospace;
-  font-weight: 700;
-}
-
-.cert-id {
-  color: var(--accent-cyan);
-  font-family: 'Courier New', monospace;
+.cert-value {
   font-size: 0.85rem;
+  color: var(--text);
+  font-weight: 500;
 }
 
-/* Actions */
-.cert-actions {
-  display: flex;
-  justify-content: center;
-  padding: 0 28px 20px;
+.cert-value.mono {
+  font-family: var(--mono);
+  color: var(--text-secondary);
 }
 
-.qr-toggle {
-  font-size: 0.85rem;
-  padding: 10px 20px;
+/* QR */
+.qr-btn {
+  display: block;
+  width: 100%;
+  padding: 10px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  font-family: var(--font);
+  color: var(--text-muted);
+  background: transparent;
+  border: none;
+  border-top: 1px solid var(--border);
+  cursor: pointer;
+  transition: color var(--transition), background var(--transition);
 }
 
-/* QR Code */
-.qr-section {
+.qr-btn:hover {
+  color: var(--text-secondary);
+  background: var(--bg-hover);
+}
+
+.qr-box {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 0 28px 28px;
-  gap: 12px;
+  padding: 24px;
+  border-top: 1px solid var(--border);
+  gap: 10px;
 }
 
-.qr-wrapper {
-  padding: 20px;
-  border-radius: var(--radius-md);
-  background: rgba(0, 0, 0, 0.3);
-  border: 1px solid var(--border-subtle);
-}
-
-.qr-hint {
-  font-size: 0.78rem;
+.qr-label {
+  font-size: 0.72rem;
   color: var(--text-muted);
 }
 
-/* Not Found Card */
-.not-found-card {
-  padding: 40px 32px;
+/* Not Found */
+.not-found {
   text-align: center;
-  border-color: rgba(239, 68, 68, 0.2);
+  padding: 28px;
 }
 
-.not-found-card h2 {
-  font-size: 1.3rem;
-  color: var(--accent-red);
-  margin-bottom: 10px;
-}
-
-.not-found-card .result-detail {
+.not-found p {
+  font-size: 0.85rem;
   color: var(--text-secondary);
-  font-size: 0.9rem;
 }
 
-@media (max-width: 600px) {
-  .cert-field {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 4px;
-  }
-  .field-value {
-    text-align: left;
-  }
+.not-found code {
+  font-family: var(--mono);
+  color: var(--text);
+  font-size: 0.82rem;
 }

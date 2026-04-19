@@ -7,18 +7,13 @@ export default function Navbar({ account, onConnect, isConnecting }) {
   const location = useLocation();
 
   return (
-    <nav className="navbar glass-strong" id="main-navbar">
-      <div className="navbar-inner">
-        {/* Logo */}
-        <Link to="/" className="navbar-brand" id="navbar-logo">
-          <span className="logo-icon">⛓️</span>
-          <span className="logo-text">
-            Cert<span className="logo-accent">Chain</span>
-          </span>
+    <nav className="nav" id="main-navbar">
+      <div className="nav-inner">
+        <Link to="/" className="nav-logo" id="navbar-logo">
+          CertChain
         </Link>
 
-        {/* Navigation Links */}
-        <div className="navbar-links">
+        <div className="nav-links">
           <Link
             to="/"
             className={`nav-link ${location.pathname === '/' ? 'active' : ''}`}
@@ -42,29 +37,17 @@ export default function Navbar({ account, onConnect, isConnecting }) {
           </Link>
         </div>
 
-        {/* Wallet Button */}
         <button
-          className={`wallet-btn ${account ? 'connected' : ''}`}
+          className={`connect-btn ${account ? 'connected' : ''}`}
           onClick={onConnect}
           disabled={isConnecting}
           id="wallet-connect-btn"
         >
-          {isConnecting ? (
-            <>
-              <span className="spinner"></span>
-              Connecting...
-            </>
-          ) : account ? (
-            <>
-              <span className="wallet-dot"></span>
-              {formatAddress(account)}
-            </>
-          ) : (
-            <>
-              <span className="wallet-icon">🦊</span>
-              Connect Wallet
-            </>
-          )}
+          {isConnecting
+            ? 'Connecting...'
+            : account
+            ? formatAddress(account)
+            : 'Connect Wallet'}
         </button>
       </div>
     </nav>
